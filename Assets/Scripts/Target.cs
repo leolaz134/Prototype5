@@ -1,0 +1,88 @@
+using UnityEngine;
+using UnityEngine.InputSystem;
+public class Target : MonoBehaviour
+{
+    private Rigidbody targetRb;
+    private GameManager gameManager;
+    private float minSpeed = 12;
+    private float maxSpeed = 16;
+    private float maxTorque = 10;
+    private float xRange = 4;
+    private float ySpawnPos = -2;
+
+    public int pointValue;
+
+    public ParticleSystem explosionParticle;
+
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+        targetRb = GetComponent<Rigidbody>();
+
+        targetRb.AddForce(RandomForce(), ForceMode.Impulse);
+        targetRb.AddTorque(RandomTorque(), RandomTorque(), RandomTorque(), ForceMode.Impulse);
+
+        //Since we don't change the z-axis, we can leave it undefined, which leads it to be 0 by default
+        transform.position = RandomSpawnPos();
+        gameManager = GameObject.Find("Game Manager").GetComponent<GameManager>();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
+
+    //Must use old input system for mouse detection
+    // private void OnMouseDown()
+    // {
+    //     if (gameManager.isGameActive)
+    //     {
+    //         Destroy(gameObject);
+    //         Instantiate(explosionParticle, transform.position, explosionParticle.transform.rotation);
+    //         gameManager.UpdateScore(pointValue);
+    //     }
+        
+    // }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        Destroy(gameObject);
+        if(!gameObject.CompareTag("Bad"))
+        {
+            gameManager.lives--;
+            gameManager.livesText.text = "Lives: " + gameManager.lives;
+        }
+        if(gameManager.lives <= 0)
+        {
+            gameManager.GameOver();
+        }
+    }
+
+    public void DestroyTarget()
+    {
+        if (gameManager.isGameActive)
+        {
+            Destroy(gameObject);
+            Instantiate(explosionParticle, transform.position, 
+        explosionParticle.transform.rotation);
+            gameManager.UpdateScore(pointValue);
+        }
+    }
+
+    //anything with undeclared privacy defaults to private
+    Vector3 RandomForce()
+    {
+        return Vector3.up * Random.Range(minSpeed, maxSpeed);
+    }
+
+    float RandomTorque()
+    {
+        return Random.Range(-maxTorque, maxTorque);
+    }   
+
+    Vector3 RandomSpawnPos()
+    {
+        return new Vector3(Random.Range(-xRange, xRange), ySpawnPos);
+    }
+}
